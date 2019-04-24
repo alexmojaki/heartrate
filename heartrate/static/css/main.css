@@ -1,0 +1,44 @@
+.highlight {
+    font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+}
+
+#stacktrace pre {
+    margin: 0.5em;
+}
+
+.code-line {
+    white-space: pre;
+}
+
+table {
+    table-layout: fixed;
+}
+
+td {
+    /*width: 1%;*/
+    /*white-space: nowrap;*/
+    padding-right: 1em;
+}
+
+.graph > span {
+    position: absolute;
+    left: 0;
+    height: 100%;
+    top: 0;
+    bottom: 0;
+}
+
+td.graph {
+    width: 100px;
+    max-width: 100px;
+    position: relative;
+}
+
+/*.highlight {*/
+    /*display: grid;*/
+    /*grid-template-columns: auto auto minmax(0, 1fr);*/
+/*}*/
+
+/*.highlight .column-3 {*/
+    /*white-space: pre;*/
+/*}*/

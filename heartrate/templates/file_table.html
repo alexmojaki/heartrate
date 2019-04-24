@@ -1,0 +1,15 @@
+{% for lineno, total, proportions, line in rows %}
+    <tr id="line-{{ lineno }}">
+        <td>{{ lineno }}</td>
+        <td>{{ total }}</td>
+        <td class="graph">
+            {% for prop, lightness in zip(proportions, lightnesses) %}
+                <span style="
+                        background-color: hsl(226, 100%, {{ lightness }}%);
+                        width: {{ prop }}%;
+                        "></span>
+            {% endfor %}
+        </td>
+        <td class="code-line">{{ line | safe }}</td>
+    </tr>
+{% endfor %}

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block body %}
+    <h4>
+        {{ path }}
+    </h4>
+    <table id="table" class="highlight">
+        {% include "file_table.html" %}
+    </table>
+
+    <script>
+      getHTML("/table/{{ path }}", "table");
+    </script>
+{% endblock %}

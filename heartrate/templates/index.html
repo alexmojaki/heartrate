@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block body %}
+    <ul class="no-bullet">
+        {% for full in files %}
+            <li>
+                <a href="{{ url_for('file_view', path=full) }}">
+                    <i class="glyphicon glyphicon-file"></i>
+                    {{ full }}
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}

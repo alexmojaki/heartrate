@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}heartrate{% endblock %}</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/monokai.css') }}">
+    <script src="{{ url_for('static', filename='js/libs/jquery-3.2.1.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/libs/bootstrap.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/stacktrace.js') }}"></script>
+    {% block head %}{% endblock %}
+</head>
+<body>
+{% block whole_body %}
+<div class="container">
+    <a href="{{ url_for('index') }}">
+        <h1>
+            <img src="{{ url_for('static', filename='img/logo.png') }}">
+            heartrate
+        </h1>
+    </a>
+    <hr>
+    {% block body %}{% endblock %}
+    <h4>Stack trace:</h4>
+    <div id="stacktrace" class="highlight"></div>
+</div>
+  {% block after_container %}
+  {% endblock %}
+{% endblock %}
+</body>
+</html>
