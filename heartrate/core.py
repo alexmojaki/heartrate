@@ -50,7 +50,8 @@ def trace(
         host='127.0.0.1',
         browser=False,
 ):
-    calling_file = inspect.currentframe().f_back.f_code.co_filename
+    calling_frame = inspect.currentframe().f_back
+    calling_file = calling_frame.f_code.co_filename
 
     @lru_cache(maxsize=None)
     def include_file(path):
@@ -148,6 +149,7 @@ def trace(
             queues[filename].append(lineno)
             totals[filename][lineno] += 1
 
+    calling_frame.f_trace = trace_func
     sys.settrace(trace_func)
     
     if browser:

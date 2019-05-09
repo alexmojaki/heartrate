@@ -53,5 +53,3 @@ The default is to trace files containing the comment "`# heartrate`" (spaces opt
 ### Caveats
 
 `trace` only traces the thread where it is called. To trace multiple threads, you must call it in each thread, with a different port each time.
-
-Tracing only starts when a new scope is entered, so if you want trace a function, call `trace` before that function is called. If you want to trace a module at the top level, you have to call `trace` before importing that module, or wrap the code in a function.
