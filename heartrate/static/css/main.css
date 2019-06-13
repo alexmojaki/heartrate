@@ -15,8 +15,6 @@ table {
 }
 
 td {
-    /*width: 1%;*/
-    /*white-space: nowrap;*/
     padding-right: 1em;
 }
 
@@ -32,6 +30,10 @@ td.graph {
     width: 100px;
     max-width: 100px;
     position: relative;
+}
+
+b {
+    background: rgba(172, 249, 255, 0.5)
 }
 
 /*.highlight {*/

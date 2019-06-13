@@ -8,6 +8,6 @@
     </table>
 
     <script>
-      getHTML("/table/{{ path }}", "table");
+      getHTML("{{ url_for('file_table_view', filename=filename) | safe }}", "table");
     </script>
 {% endblock %}
