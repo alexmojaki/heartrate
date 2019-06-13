@@ -71,7 +71,6 @@ def trace(
         filename = request.args['filename']
         source = Source.for_filename(filename)
         queue = queues[filename]
-        total = len(queue)
         
         tokens = source.asttokens()
         ranges = set()
@@ -91,13 +90,13 @@ def trace(
         highlighted_lines = list(enumerate(highlighted.splitlines()))
         
         counters = [
-            Counter(islice(queue, max(0, total - 2 ** i), total))
+            queue_counter(queue, 2 ** i)
             for i in range(levels + 1)
         ]
 
         ratios = [
             [
-                counter[i + 1] / min(2 ** c, total or 1)
+                counter[i + 1] / min(2 ** c, len(queue) or 1)
                 * (c + 1) / levels
                 for c, counter in enumerate(counters)
             ]
@@ -212,3 +211,11 @@ def highlight_ranges(ranges, text):
         start = position
     html_body = ''.join(parts)
     return html_body
+
+
+def queue_counter(queue, n):
+    while True:
+        try:
+            return Counter(islice(queue, max(0, len(queue) - n), len(queue)))
+        except RuntimeError:
+            pass
