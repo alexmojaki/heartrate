@@ -2,7 +2,7 @@ function getLoop(url, done) {
   function get() {
     $.get(url)
       .done(done)
-      .always(setTimeout(get, 100));
+      .always(setTimeout(get, 500));
   }
 
   $(get);
@@ -34,7 +34,7 @@ getLoop("/stacktrace/", function (data) {
           )
         )
         .append($("<pre/>")
-          .html("    " + arr[3])
+          .html(arr[3])
         )
       );
   });

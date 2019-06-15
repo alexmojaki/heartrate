@@ -6,10 +6,9 @@ import webbrowser
 from collections import defaultdict, deque, Counter
 from functools import lru_cache
 from itertools import islice, takewhile
-from traceback import extract_stack
 
-from executing_node import Source
 import pygments
+from executing_node import Source
 from flask import Flask, render_template, jsonify, url_for, request
 # noinspection PyUnresolvedReferences
 from pygments.formatters import HtmlFormatter
@@ -34,6 +33,27 @@ def highlight_python(code):
         PythonLexer(),
         HtmlFormatter(nowrap=True),
     )
+
+
+def highlight_python_and_ranges(code):
+    return (highlight_python(code)
+            .replace(highlight_python(open_sentinel).rstrip('\n'), "<b>")
+            .replace(highlight_python(close_sentinel).rstrip('\n'), "</b>")
+            )
+
+
+def highlight_stack_frame(frame):
+    source = Source.for_frame(frame)
+    source.asttokens()
+    try:
+        node = Source.executing_node(frame)
+    except Exception:
+        start = end = frame.f_lineno
+    else:
+        start = node.first_token.start[0]
+        end = node.last_token.end[0]
+    highlighted = '\n'.join(highlight_ranges(source, [frame]).splitlines()[start - 1:end])
+    return highlight_python_and_ranges(highlighted)
 
 
 def trace(
@@ -71,22 +91,9 @@ def trace(
         filename = request.args['filename']
         source = Source.for_filename(filename)
         queue = queues[filename]
-        
-        tokens = source.asttokens()
-        ranges = set()
-        for frame in frames_matching(filename):
-            try:
-                node = Source.executing_node(frame)
-            except Exception:
-                pass
-            else:
-                ranges.add(tokens.get_text_range(node))
-        highlighted = highlight_ranges(ranges, source.text)
-        highlighted = highlight_python(highlighted)
-        highlighted = (highlighted
-                       .replace(highlight_python(open_sentinel).strip(), "<b>")
-                       .replace(highlight_python(close_sentinel).strip(), "</b>")
-                       )
+
+        highlighted = highlight_ranges(source, frames_matching(filename))
+        highlighted = highlight_python_and_ranges(highlighted)
         highlighted_lines = list(enumerate(highlighted.splitlines()))
         
         counters = [
@@ -143,16 +150,27 @@ def trace(
 
     @app.route('/stacktrace/')
     def stacktrace():
-        return jsonify([
-            (path, *rest, code, include_file(path))
-            for path, *rest, code in
-            takewhile(
-                lambda entry: not (
-                        'heartrate' in entry[0]
-                        and entry[2] == trace_func.__name__),
-                extract_stack(current_frame())
-            )
-        ])
+        def gen():
+            frame = current_frame()
+            while frame:
+                code = frame.f_code
+                filename = code.co_filename
+                name = code.co_name
+                yield (
+                    filename,
+                    frame.f_lineno,
+                    name,
+                    highlight_stack_frame(frame),
+                    include_file(filename)
+                )
+                frame = frame.f_back
+
+        return jsonify(list(takewhile(
+            lambda entry: not (
+                    'heartrate' in entry[0]
+                    and entry[2] == trace_func.__name__),
+            list(gen())[::-1]
+        )))
 
     threading.Thread(
         target=lambda: app.run(
@@ -187,16 +205,33 @@ def trace(
         webbrowser.open_new_tab(url)
 
 
-open_sentinel = "$$heartrate_open$$"
-close_sentinel = "$$heartrate_close$$"
+open_sentinel = " $$heartrate_open$$ "
+close_sentinel = " $$heartrate_close$$ "
 
 
-def highlight_ranges(ranges, text):
+def highlight_ranges(source, frames):
+    text = source.text
+    tokens = source.asttokens()
+    ranges = set()
+    for frame in frames:
+        try:
+            node = Source.executing_node(frame)
+        except Exception:
+            pass
+        else:
+            ranges.add(tokens.get_text_range(node))
+    
     positions = []
 
     for start, end in ranges:
         positions.append((start, open_sentinel))
         positions.append((end, close_sentinel))
+        while True:
+            start = text.find('\n', start + 1, end)
+            if start == -1:
+                break
+            positions.append((start, close_sentinel))
+            positions.append((start + 1, open_sentinel))
 
     # This just makes the loop below simpler
     positions.append((len(text), ''))
@@ -209,8 +244,7 @@ def highlight_ranges(ranges, text):
         parts.append(text[start:position])
         parts.append(part)
         start = position
-    html_body = ''.join(parts)
-    return html_body
+    return ''.join(parts)
 
 
 def queue_counter(queue, n):
