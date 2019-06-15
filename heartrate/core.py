@@ -8,12 +8,12 @@ from functools import lru_cache
 from itertools import islice, takewhile
 
 import pygments
-from executing_node import Source
+from executing_node import Source, PY3
 from flask import Flask, render_template, jsonify, url_for, request
 # noinspection PyUnresolvedReferences
 from pygments.formatters import HtmlFormatter
 # noinspection PyUnresolvedReferences
-from pygments.lexers import PythonLexer
+from pygments.lexers import PythonLexer, Python3Lexer
 
 from heartrate import files as files_filters
 
@@ -30,7 +30,7 @@ lightnesses = [
 def highlight_python(code):
     return pygments.highlight(
         code,
-        PythonLexer(),
+        (Python3Lexer if PY3 else PythonLexer)(),
         HtmlFormatter(nowrap=True),
     )
 
