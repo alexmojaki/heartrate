@@ -43,15 +43,16 @@ def highlight_python_and_ranges(code):
 
 
 def highlight_stack_frame(frame):
-    source = Source.for_frame(frame)
-    source.asttokens()
-    try:
-        node = Source.executing_node(frame)
-    except Exception:
-        start = end = frame.f_lineno
-    else:
+    executing = Source.executing(frame)
+    node = executing.node
+    source = executing.source
+    if node:
+        executing.source.asttokens()
         start = node.first_token.start[0]
         end = node.last_token.end[0]
+    else:
+        start = end = frame.f_lineno
+    
     highlighted = '\n'.join(highlight_ranges(source, [frame]).splitlines()[start - 1:end])
     return highlight_python_and_ranges(highlighted)
 
@@ -211,15 +212,12 @@ close_sentinel = " $$heartrate_close$$ "
 
 def highlight_ranges(source, frames):
     text = source.text
-    tokens = source.asttokens()
     ranges = set()
     for frame in frames:
-        try:
-            node = Source.executing_node(frame)
-        except Exception:
-            pass
-        else:
-            ranges.add(tokens.get_text_range(node))
+        executing = Source.executing(frame)
+        if executing.node:
+            text_range = executing.text_range()
+            ranges.add(text_range)
     
     positions = []
 
