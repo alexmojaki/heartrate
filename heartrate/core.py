@@ -155,7 +155,7 @@ def trace(
             while frame:
                 code = frame.f_code
                 filename = code.co_filename
-                name = code.co_name
+                name = Source.for_frame(frame).code_qualname(code)
                 yield (
                     filename,
                     frame.f_lineno,
@@ -168,7 +168,7 @@ def trace(
         return jsonify(list(takewhile(
             lambda entry: not (
                     'heartrate' in entry[0]
-                    and entry[2] == trace_func.__name__),
+                    and entry[2].endswith(trace_func.__name__)),
             list(gen())[::-1]
         )))
 
