@@ -31,26 +31,26 @@ In the stacktrace, you can click on stack entries for files that are being trace
 
 ### Options
 
-**`files`** determines which files get traced *in addition to the one where `trace` was called*. It must be a callable which accepts one argument: the path to a file, and returns True if the file should be traced. For convenience, a few functions are supplied for use, e.g.:
+- **`files`** determines which files get traced *in addition to the one where `trace` was called*. It must be a callable which accepts one argument: the path to a file, and returns True if the file should be traced. For convenience, a few functions are supplied for use, e.g.:
 
- ```python
-from heartrate import trace, files
-trace(files=files.path_contains('my_app', 'my_library'))
-```
+     ```python
+    from heartrate import trace, files
+    trace(files=files.path_contains('my_app', 'my_library'))
+    ```
+    
+    The supplied functions are:
+    
+    - `files.all`: trace all files.
+    - `files.path_contains(*substrings)` trace all files where the path contains any of the given substrings.
+    - `files.contains_regex(pattern)` trace all files which contain the given regex in the file itself, so you can mark files to be traced in the source code, e.g. with a comment.
+    
+    The default is to trace files containing the comment "`# heartrate`" (spaces optional).
 
-The supplied functions are:
+- **`host`**: HTTP host for the server. To run a remote server accessible from anywhere, use `'0.0.0.0'`. Default `'127.0.0.1'`.
 
-- `files.all`: trace all files.
-- `files.path_contains(*substrings)` trace all files where the path contains any of the given substrings.
-- `files.contains_regex(pattern)` trace all files which contain the given regex in the file itself, so you can mark files to be traced in the source code, e.g. with a comment.
+- **`port`**: HTTP port for the server. Default `9999`.
 
-The default is to trace files containing the comment "`# heartrate`" (spaces optional).
-
-**`host`**: HTTP host for the server. To run a remote server accessible from anywhere, use `'0.0.0.0'`. Default `'127.0.0.1'`.
-
-**`port`**: HTTP port for the server. Default `9999`.
-
-**`browser`**: if True, automatically opens a browser tab displaying the visualisation for the file where `trace` is called.
+- **`browser`**: if True, automatically opens a browser tab displaying the visualisation for the file where `trace` is called.
 
 ### Caveats
 
