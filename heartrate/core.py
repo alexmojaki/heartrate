@@ -8,7 +8,7 @@ from functools import lru_cache
 from itertools import islice, takewhile
 
 import pygments
-from executing_node import Source, PY3
+from executing import Source
 from flask import Flask, render_template, jsonify, url_for, request
 # noinspection PyUnresolvedReferences
 from pygments.formatters import HtmlFormatter
@@ -27,11 +27,14 @@ lightnesses = [
 ]
 
 
+lexer = Python3Lexer()
+formatter = HtmlFormatter(nowrap=True)
+
 def highlight_python(code):
     return pygments.highlight(
         code,
-        (Python3Lexer if PY3 else PythonLexer)(),
-        HtmlFormatter(nowrap=True),
+        lexer,
+        formatter,
     )
 
 
@@ -47,7 +50,7 @@ def highlight_stack_frame(frame):
     node = executing.node
     source = executing.source
     if node:
-        executing.source.asttokens()
+        source.asttokens()
         start = node.first_token.start[0]
         end = node.last_token.end[0]
     else:
