@@ -2,13 +2,15 @@
 
 This library offers a simple real time visualisation of the execution of a Python program:
 
-![demo](https://s3.gifyu.com/images/anim4.gif)
+![demo](https://media.giphy.com/media/H7wUw65MLvHLoX4sMW/giphy.gif)
 
 The numbers on the left are how many times each line has been hit. The bars show the lines that have been hit recently - longer bars mean more hits, lighter colours mean more recent.
 
+Calls that are currently being executed are highlighted thanks to the [`executing`](https://github.com/alexmojaki/executing) library.
+
 It also shows a live stacktrace:
 
-![stacktrace](https://media.giphy.com/media/jowhm7LgUCdc7Er924/giphy.gif)
+![stacktrace](https://media.giphy.com/media/VIQqY8yyjYkhNfwF29/giphy.gif)
 
 ## Installation
 

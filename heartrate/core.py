@@ -30,6 +30,7 @@ lightnesses = [
 lexer = Python3Lexer()
 formatter = HtmlFormatter(nowrap=True)
 
+
 def highlight_python(code):
     return pygments.highlight(
         code,
