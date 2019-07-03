@@ -2,13 +2,15 @@
 
 This library offers a simple real time visualisation of the execution of a Python program:
 
-![demo](https://s3.gifyu.com/images/anim4.gif)
+![demo](https://media.giphy.com/media/H7wUw65MLvHLoX4sMW/giphy.gif)
 
 The numbers on the left are how many times each line has been hit. The bars show the lines that have been hit recently - longer bars mean more hits, lighter colours mean more recent.
 
+Calls that are currently being executed are highlighted thanks to the [`executing`](https://github.com/alexmojaki/executing) library.
+
 It also shows a live stacktrace:
 
-![stacktrace](https://media.giphy.com/media/jowhm7LgUCdc7Er924/giphy.gif)
+![stacktrace](https://media.giphy.com/media/VIQqY8yyjYkhNfwF29/giphy.gif)
 
 ## Installation
 
@@ -53,5 +55,3 @@ The default is to trace files containing the comment "`# heartrate`" (spaces opt
 ### Caveats
 
 `trace` only traces the thread where it is called. To trace multiple threads, you must call it in each thread, with a different port each time.
-
-Tracing only starts when a new scope is entered, so if you want trace a function, call `trace` before that function is called. If you want to trace a module at the top level, you have to call `trace` before importing that module, or wrap the code in a function.

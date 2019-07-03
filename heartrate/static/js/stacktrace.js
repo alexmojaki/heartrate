@@ -2,7 +2,7 @@ function getLoop(url, done) {
   function get() {
     $.get(url)
       .done(done)
-      .always(setTimeout(get, 100));
+      .always(setTimeout(get, 500));
   }
 
   $(get);
@@ -30,11 +30,11 @@ getLoop("/stacktrace/", function (data) {
         .append($("<pre/>")
           .append($(arr[4] ? "<a/>" : "<span/>")
             .text(arr.slice(0, 3).join(" : "))
-            .attr("href", "/file/" + arr[0] + "#line-" + arr[1])
+            .attr("href", "/file/?" + $.param({filename:arr[0]}) + "#line-" + arr[1])
           )
         )
         .append($("<pre/>")
-          .html("    " + arr[3])
+          .html(arr[3])
         )
       );
   });
