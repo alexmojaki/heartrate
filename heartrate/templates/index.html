@@ -3,7 +3,7 @@
     <ul class="no-bullet">
         {% for full in files %}
             <li>
-                <a href="{{ url_for('file_view', path=full) }}">
+                <a href="{{ url_for('file_view', filename=full) }}">
                     <i class="glyphicon glyphicon-file"></i>
                     {{ full }}
                 </a>
