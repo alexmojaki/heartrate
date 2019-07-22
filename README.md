@@ -53,8 +53,8 @@ In the file view, the stacktrace is at the bottom. In the stacktrace, you can cl
     
     If you're tracing multiple files, there are two ways to get to the pages with their visualisations:
         
-        1. In the stacktrace, click on stack entries for files that are being traced. This will open the page and jump to the line in that stack entry.
-        2. Go to the index page at http://localhost:9999/ (you can click on the logo in the top left corner) to see a list of traced files.
+    1. In the stacktrace, click on stack entries for files that are being traced. This will open the page and jump to the line in that stack entry.
+    2. Go to the index page at http://localhost:9999/ (you can click on the logo in the top left corner) to see a list of traced files.
 
 - **`host`**: HTTP host for the server. To run a remote server accessible from anywhere, use `'0.0.0.0'`. Default `'127.0.0.1'`.
 
