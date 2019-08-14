@@ -62,6 +62,8 @@ In the file view, the stacktrace is at the bottom. In the stacktrace, you can cl
 
 - **`browser`**: if True, automatically opens a browser tab displaying the visualisation for the file where `trace` is called. False by default.
 
+- **`daemon`**: sets whether the thread containing the server is a daemon thread. Set this to true to shut down the server once the rest of the program completes.
+
 ## Related libraries
 
 - [pyheat](https://github.com/csurfer/pyheat): a heatmap showing which lines of a file consume the most time.

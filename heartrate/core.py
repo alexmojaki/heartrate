@@ -66,6 +66,7 @@ def trace(
         port=9999,
         host='127.0.0.1',
         browser=False,
+        daemon=False,
 ):
     calling_frame = inspect.currentframe().f_back
     calling_file = calling_frame.f_code.co_filename
@@ -183,6 +184,7 @@ def trace(
             host=host,
             port=port,
         ),
+        daemon=daemon,
     ).start()
 
     with app.app_context():
