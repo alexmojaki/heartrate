@@ -145,7 +145,12 @@ def trace(
     def stacktrace():
         def gen():
             options = stack_data.Options(before=0, after=0, pygments_formatter=formatter)
-            for frame_info in stack_data.FrameInfo.stack_data(current_frame(), options):
+            frame_infos = stack_data.FrameInfo.stack_data(
+                current_frame(),
+                options,
+                collapse_repeated_frames=False,
+            )
+            for frame_info in frame_infos:
                 filename = frame_info.filename
                 name = frame_info.executing.code_qualname()
                 if "heartrate" in filename and name.endswith(trace_func.__name__):
