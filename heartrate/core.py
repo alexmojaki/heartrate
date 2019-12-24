@@ -5,15 +5,16 @@ import threading
 import webbrowser
 from collections import defaultdict, deque, Counter
 from functools import lru_cache
-from itertools import islice, takewhile
+from itertools import islice
 
 import pygments
+import stack_data
 from executing import Source
 from flask import Flask, render_template, jsonify, url_for, request
 # noinspection PyUnresolvedReferences
 from pygments.formatters import HtmlFormatter
 # noinspection PyUnresolvedReferences
-from pygments.lexers import PythonLexer, Python3Lexer
+from pygments.lexers import Python3Lexer
 
 from heartrate import files as files_filters
 
@@ -28,7 +29,8 @@ lightnesses = [
 
 
 lexer = Python3Lexer()
-formatter = HtmlFormatter(nowrap=True)
+style = stack_data.style_with_executing_node("monokai", "bg:#acf9ff")
+formatter = HtmlFormatter(nowrap=True, style=style)
 
 
 def highlight_python(code):
@@ -44,21 +46,6 @@ def highlight_python_and_ranges(code):
             .replace(highlight_python(open_sentinel).rstrip('\n'), "<b>")
             .replace(highlight_python(close_sentinel).rstrip('\n'), "</b>")
             )
-
-
-def highlight_stack_frame(frame):
-    executing = Source.executing(frame)
-    node = executing.node
-    source = executing.source
-    if node:
-        source.asttokens()
-        start = node.first_token.start[0]
-        end = node.last_token.end[0]
-    else:
-        start = end = frame.f_lineno
-    
-    highlighted = '\n'.join(highlight_ranges(source, [frame]).splitlines()[start - 1:end])
-    return highlight_python_and_ranges(highlighted)
 
 
 def trace(
@@ -157,26 +144,24 @@ def trace(
     @app.route('/stacktrace/')
     def stacktrace():
         def gen():
-            frame = current_frame()
-            while frame:
-                code = frame.f_code
-                filename = code.co_filename
-                name = Source.for_frame(frame).code_qualname(code)
+            options = stack_data.Options(before=0, after=0, pygments_formatter=formatter)
+            for frame_info in stack_data.FrameInfo.stack_data(current_frame(), options):
+                filename = frame_info.filename
+                name = frame_info.executing.code_qualname()
+                if "heartrate" in filename and name.endswith(trace_func.__name__):
+                    continue
                 yield (
                     filename,
-                    frame.f_lineno,
+                    frame_info.lineno,
                     name,
-                    highlight_stack_frame(frame),
+                    "\n".join(
+                        line.render(pygmented=True)
+                        for line in frame_info.lines
+                    ),
                     include_file(filename)
                 )
-                frame = frame.f_back
 
-        return jsonify(list(takewhile(
-            lambda entry: not (
-                    'heartrate' in entry[0]
-                    and entry[2].endswith(trace_func.__name__)),
-            list(gen())[::-1]
-        )))
+        return jsonify(list(gen()))
 
     threading.Thread(
         target=lambda: app.run(
