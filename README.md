@@ -68,4 +68,4 @@ In the file view, the stacktrace is at the bottom. In the stacktrace, you can cl
 
 - [pyheat](https://github.com/csurfer/pyheat): a heatmap showing which lines of a file consume the most time.
 - [snoop](https://github.com/alexmojaki/snoop): a feature-rich and convenient debugging library which records every line executed, the local variables at each point, and other information.
-- [birdseye](https://github.com/alexmojaki/birdseye): a debugger which lets you easily view the value the value of every expression
+- [birdseye](https://github.com/alexmojaki/birdseye): a debugger which lets you easily view the value of every expression
