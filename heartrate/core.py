@@ -70,7 +70,7 @@ def trace(
 ):
     calling_frame = inspect.currentframe().f_back
     calling_file = calling_frame.f_code.co_filename
-    host_is_local = host in ["127.0.0.1", "localhost"]
+
     @lru_cache(maxsize=None)
     def include_file(path):
         try:
@@ -83,6 +83,8 @@ def trace(
     totals = defaultdict(Counter)
 
     app = Flask(__name__)
+
+    host_is_local = host in ["127.0.0.1", "localhost"]
     if host_is_local:
         app.config["SERVER_NAME"] = "{host}:{port}".format(host=host, port=port)
 
