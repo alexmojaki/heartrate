@@ -83,7 +83,10 @@ def trace(
     totals = defaultdict(Counter)
 
     app = Flask(__name__)
-    app.config["SERVER_NAME"] = "localhost:{port}".format(port=port)
+
+    host_is_local = host in ["127.0.0.1", "localhost"]
+    if host_is_local:
+        app.config["SERVER_NAME"] = "{host}:{port}".format(host=host, port=port)
 
     @app.route('/')
     def index():
@@ -187,11 +190,7 @@ def trace(
         daemon=daemon,
     ).start()
 
-    with app.app_context():
-        url = url_for(
-            'file_view',
-            filename=calling_file,
-        )
+
 
     def trace_func(frame, event, _arg):
         filename = frame.f_code.co_filename
@@ -208,7 +207,12 @@ def trace(
     calling_frame.f_trace = trace_func
     sys.settrace(trace_func)
     
-    if browser:
+    if browser and host_is_local:
+        with app.app_context():
+            url = url_for(
+                'file_view',
+                filename=calling_file,
+            )
         webbrowser.open_new_tab(url)
 
 
