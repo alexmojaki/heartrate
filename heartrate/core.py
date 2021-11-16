@@ -5,15 +5,14 @@ import threading
 import webbrowser
 from collections import defaultdict, deque, Counter
 from functools import lru_cache
-from itertools import islice, takewhile
+from itertools import islice
 
-import pygments
+import stack_data
 from executing import Source
 from flask import Flask, render_template, jsonify, url_for, request
 # noinspection PyUnresolvedReferences
 from pygments.formatters import HtmlFormatter
-# noinspection PyUnresolvedReferences
-from pygments.lexers import PythonLexer, Python3Lexer
+from stack_data.utils import _pygmented_with_ranges, iter_stack
 
 from heartrate import files as files_filters
 
@@ -27,38 +26,8 @@ lightnesses = [
 ]
 
 
-lexer = Python3Lexer()
-formatter = HtmlFormatter(nowrap=True)
-
-
-def highlight_python(code):
-    return pygments.highlight(
-        code,
-        lexer,
-        formatter,
-    )
-
-
-def highlight_python_and_ranges(code):
-    return (highlight_python(code)
-            .replace(highlight_python(open_sentinel).rstrip('\n'), "<b>")
-            .replace(highlight_python(close_sentinel).rstrip('\n'), "</b>")
-            )
-
-
-def highlight_stack_frame(frame):
-    executing = Source.executing(frame)
-    node = executing.node
-    source = executing.source
-    if node:
-        source.asttokens()
-        start = node.first_token.start[0]
-        end = node.last_token.end[0]
-    else:
-        start = end = frame.f_lineno
-    
-    highlighted = '\n'.join(highlight_ranges(source, [frame]).splitlines()[start - 1:end])
-    return highlight_python_and_ranges(highlighted)
+style = stack_data.style_with_executing_node("monokai", "bg:#acf9ff")
+formatter = HtmlFormatter(nowrap=True, style=style)
 
 
 def trace(
@@ -101,9 +70,11 @@ def trace(
         source = Source.for_filename(filename)
         queue = queues[filename]
 
-        highlighted = highlight_ranges(source, frames_matching(filename))
-        highlighted = highlight_python_and_ranges(highlighted)
-        highlighted_lines = list(enumerate(highlighted.splitlines()))
+        highlighted_lines = list(enumerate(_pygmented_with_ranges(
+            formatter,
+            source.text,
+            executing_ranges(filename),
+        )))
         
         counters = [
             queue_counter(queue, 2 ** i)
@@ -140,7 +111,6 @@ def trace(
             zip=zip,
             lightnesses=lightnesses,
             filename=filename,
-            highlighted=highlighted,
         )
 
     @app.route('/table/')
@@ -150,36 +120,39 @@ def trace(
     def current_frame():
         return sys._current_frames()[thread_ident]
 
-    def frames_matching(filename):
-        frame = current_frame()
-        while frame:
+    def executing_ranges(filename):
+        for frame in iter_stack(current_frame()):
             if frame.f_code.co_filename == filename:
-                yield frame
-            frame = frame.f_back
+                executing = Source.executing(frame)
+                if executing.node:
+                    yield executing.text_range()
 
     @app.route('/stacktrace/')
     def stacktrace():
         def gen():
-            frame = current_frame()
-            while frame:
-                code = frame.f_code
-                filename = code.co_filename
-                name = Source.for_frame(frame).code_qualname(code)
+            options = stack_data.Options(before=0, after=0, pygments_formatter=formatter)
+            frame_infos = stack_data.FrameInfo.stack_data(
+                current_frame(),
+                options,
+                collapse_repeated_frames=False,
+            )
+            for frame_info in frame_infos:
+                filename = frame_info.filename
+                name = frame_info.executing.code_qualname()
+                if "heartrate" in filename and name.endswith(trace_func.__name__):
+                    continue
                 yield (
                     filename,
-                    frame.f_lineno,
+                    frame_info.lineno,
                     name,
-                    highlight_stack_frame(frame),
+                    "\n".join(
+                        line.render(pygmented=True)
+                        for line in frame_info.lines
+                    ),
                     include_file(filename)
                 )
-                frame = frame.f_back
 
-        return jsonify(list(takewhile(
-            lambda entry: not (
-                    'heartrate' in entry[0]
-                    and entry[2].endswith(trace_func.__name__)),
-            list(gen())[::-1]
-        )))
+        return jsonify(list(gen()))
 
     threading.Thread(
         target=lambda: app.run(
@@ -214,45 +187,6 @@ def trace(
                 filename=calling_file,
             )
         webbrowser.open_new_tab(url)
-
-
-open_sentinel = " $$heartrate_open$$ "
-close_sentinel = " $$heartrate_close$$ "
-
-
-def highlight_ranges(source, frames):
-    text = source.text
-    ranges = set()
-    for frame in frames:
-        executing = Source.executing(frame)
-        if executing.node:
-            text_range = executing.text_range()
-            ranges.add(text_range)
-    
-    positions = []
-
-    for start, end in ranges:
-        positions.append((start, open_sentinel))
-        positions.append((end, close_sentinel))
-        while True:
-            start = text.find('\n', start + 1, end)
-            if start == -1:
-                break
-            positions.append((start, close_sentinel))
-            positions.append((start + 1, open_sentinel))
-
-    # This just makes the loop below simpler
-    positions.append((len(text), ''))
-
-    positions.sort()
-
-    parts = []
-    start = 0
-    for position, part in positions:
-        parts.append(text[start:position])
-        parts.append(part)
-        start = position
-    return ''.join(parts)
 
 
 def queue_counter(queue, n):
